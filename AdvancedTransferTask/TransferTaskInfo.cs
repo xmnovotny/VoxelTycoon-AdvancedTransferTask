@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using JetBrains.Annotations;
-using UnityEngine;
-using VoxelTycoon;
-using VoxelTycoon.Tracks;
-using VoxelTycoon.Tracks.Tasks;
-using XMNUtils;
-
+﻿
 namespace AdvancedTransferTask
 {
+    using System.Collections.Generic;
+    using JetBrains.Annotations;
+    using UnityEngine;
+    using VoxelTycoon;
+    using VoxelTycoon.Tracks;
+    using VoxelTycoon.Tracks.Tasks;
+    using XMNUtils;
+
     public class TransferTaskInfo
     {
         public bool IsIncomplete { get; private set; }
         
         private readonly Dictionary<Item, int> _capacityPerItem = new();
+        private readonly Dictionary<Item, int> _tmpCapacityPerItem = new();
 
         private readonly TransferTask _task;
         private readonly int _percent;
@@ -40,9 +41,16 @@ namespace AdvancedTransferTask
             return _capacityPerItem;
         }
 
+        public static int CalculateFinalCapacity(int percent, int capacity)
+        {
+            // ReSharper disable once PossibleLossOfFraction
+            return Mathf.RoundToInt(Mathf.Ceil(capacity * percent / 100));
+        }
+
         private void CalculateCapacityPerItem()
         {
             _capacityPerItem.Clear();
+            _tmpCapacityPerItem.Clear();
             ImmutableList<VehicleUnit> units = _task.GetAvailableUnits();
             IsIncomplete = false;
             for (int i = 0; i < units.Count; i++)
@@ -54,10 +62,15 @@ namespace AdvancedTransferTask
                 }
                 else
                 {
-                    // ReSharper disable once PossibleLossOfFraction
-                    _capacityPerItem.AddIntToDict(unit.Storage.Item,  Mathf.RoundToInt(Mathf.Ceil(unit.Storage.Capacity * _percent / 100)));
+                    _tmpCapacityPerItem.AddIntToDict(unit.Storage.Item,  unit.Storage.Capacity);
                 }
             }
+
+            foreach (var capacity in _tmpCapacityPerItem)
+            {
+                _capacityPerItem[capacity.Key] = CalculateFinalCapacity(_percent, capacity.Value);
+            }
+            _tmpCapacityPerItem.Clear();
         }
     }
 }

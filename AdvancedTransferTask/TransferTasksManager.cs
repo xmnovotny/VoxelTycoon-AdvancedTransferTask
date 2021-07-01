@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using HarmonyLib;
-using JetBrains.Annotations;
-using UnityEngine;
-using VoxelTycoon;
-using VoxelTycoon.Serialization;
-using VoxelTycoon.Tracks;
-using VoxelTycoon.Tracks.Tasks;
-using XMNUtils;
-
+﻿
 namespace AdvancedTransferTask
 {
+    using System;
+    using System.Collections.Generic;
+    using HarmonyLib;
+    using JetBrains.Annotations;
+    using UnityEngine;
+    using VoxelTycoon;
+    using VoxelTycoon.Serialization;
+    using VoxelTycoon.Tracks;
+    using VoxelTycoon.Tracks.Tasks;
+    using XMNUtils;
+    
     [HarmonyPatch]
     [SchemaVersion(1)]
     public class TransferTasksManager : LazyManager<TransferTasksManager>
@@ -19,6 +20,8 @@ namespace AdvancedTransferTask
         private readonly Dictionary<TransferTask, TransferTaskInfo> _cachedTaskInfo = new();
         private readonly Dictionary<TransferTask, Dictionary<Item, int>> _cachedLoadedItems = new();
         private readonly Dictionary<Storage, VehicleUnit> _storageToUnit = new();
+
+        public Action<TransferTask> SettingsChanged;
 
         public int? GetTaskPercent(TransferTask task)
         {
@@ -52,6 +55,7 @@ namespace AdvancedTransferTask
                 OnTaskStop(task);
                 _tasksPercents.Remove(task);
             }
+            SettingsChanged?.Invoke(task);
         }
 
         [CanBeNull]
