@@ -1,0 +1,5 @@
+﻿{
+  "advanced_transfer_task/percentage_loaded": "Procento z kapacity jednotek jako maximální limit nakládky.",
+  "advanced_transfer_task/percentage_unloaded": "Procento z kapacity jednotek, které zůstane naložené.",
+  "advanced_transfer_task/edit_tooltip": "Upravit přesný limit nakládky/vykládky"
+}

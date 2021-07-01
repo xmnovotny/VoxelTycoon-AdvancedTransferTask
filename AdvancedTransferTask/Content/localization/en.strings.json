@@ -1,0 +1,5 @@
+﻿{
+  "advanced_transfer_task/percentage_loaded": "Percentage of units capacity for maximum loading limit",
+  "advanced_transfer_task/percentage_unloaded": "Percentage of units capacity that remains loaded.",
+  "advanced_transfer_task/edit_tooltip": "Edit precise limit for loading/unloading"
+}

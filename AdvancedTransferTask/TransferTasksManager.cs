@@ -35,7 +35,6 @@ namespace AdvancedTransferTask
 
         public void SetTaskPercent(TransferTask task, int? percent)
         {
-            FileLog.Log($"SetPercent: {percent}");
             if (percent.HasValue)
             {
                 if (percent < 1)
@@ -357,6 +356,14 @@ namespace AdvancedTransferTask
             _cachedTaskInfo.Remove(task);
             InvalidateLoadedItems(task);
         }
+
+        private void CopyFrom(TransferTask task, TransferTask original)
+        {
+            if (_tasksPercents.TryGetValue(original, out int percent))
+            {
+                _tasksPercents[task] = percent;
+            }
+        }
         
         #region HARMONY
 
@@ -397,6 +404,16 @@ namespace AdvancedTransferTask
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(TransferTask), "CopyFrom")]
+        private static void TransferTask_CopyFrom_pof(TransferTask __instance, SubTask original)
+        {
+            if (original is TransferTask originalTask)
+            {
+                Current.CopyFrom(__instance, originalTask);
+            }
+        }
+        
         [HarmonyPrefix]
         [HarmonyPatch(typeof(TransferTask), "IsUnloading")]
         private static void TransferTask_IsUnloading_prf(TransferTask __instance, out bool __state)

@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using VoxelTycoon;
 using VoxelTycoon.Game.UI;
+using VoxelTycoon.Localization;
 using VoxelTycoon.Tracks.Tasks;
+using VoxelTycoon.UI;
 using VoxelTycoon.UI.Controls;
 using VoxelTycoon.UI.Windows;
 
@@ -29,12 +31,18 @@ namespace AdvancedTransferTask.UI
             Button component = GetComponent<Button>();
             if (editMode)
             {
-                if (percent == null)
+                if (percent == null && _task is LoadTask)
                 {
                     percent = 100;
                 }
+                else if (percent == null && _task is UnloadTask)
+                {
+                    percent = 0;
+                }
                 base.gameObject.AddComponent<ClickableDecorator>();
                 component.onClick.AddListener(OnClick);
+
+                Tooltip.For(_text.transform.parent, LazyManager<LocaleManager>.Current.Locale.GetString("advanced_transfer_task/edit_tooltip"));
             }
             else
             {
@@ -49,9 +57,9 @@ namespace AdvancedTransferTask.UI
         {
             TransferTasksManager manager = LazyManager<TransferTasksManager>.Current;
             int? percent = manager.GetTaskPercent(_task);
-            InputDialog.ShowFor("Set percent of loading/unloading", percent != null ? percent.Value.ToString() : "", InputField.CharacterValidation.Integer, delegate(string s)
+            Locale locale = LazyManager<LocaleManager>.Current.Locale;
+            InputDialog.ShowFor(_task is LoadTask ? locale.GetString("advanced_transfer_task/percentage_loaded") : locale.GetString("advanced_transfer_task/percentage_unloaded"), percent != null ? percent.Value.ToString() : "", InputField.CharacterValidation.Integer, delegate(string s)
             {
-                FileLog.Log($"Clicked: {s}");
                 int? newPercent;
                 if (s.Trim() == "")
                 {
@@ -59,10 +67,14 @@ namespace AdvancedTransferTask.UI
                 } else
                 if (int.TryParse(s, out var value))
                 {
-                    newPercent = Mathf.RoundToInt(Mathf.Clamp(value, 1f, 100f));
-                    if (newPercent == 100)
+                    newPercent = Mathf.Clamp(value, 0, 100);
+                    if ((newPercent == 100 && _task is LoadTask) || (newPercent == 0 && _task is UnloadTask))
                     {
                         newPercent = null;
+                    }
+                    else
+                    {
+                        newPercent = Mathf.Clamp(newPercent.Value, 1, 99);
                     }
                 }
                 else
@@ -70,7 +82,6 @@ namespace AdvancedTransferTask.UI
                     return;
                 }
                 
-                FileLog.Log($"NewPercent: {newPercent}");
                 RouteHelper.PropagateAction(_task, delegate(TransferTask t)
                 {
                     manager.SetTaskPercent(t, newPercent);
