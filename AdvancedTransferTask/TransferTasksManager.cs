@@ -17,6 +17,8 @@ namespace AdvancedTransferTask
     {
         private readonly Dictionary<TransferTask, int> _tasksPercents = new();
         private readonly Dictionary<TransferTask, TransferTaskInfo> _cachedTaskInfo = new();
+        private readonly Dictionary<TransferTask, Dictionary<Item, int>> _cachedLoadedItems = new();
+        private readonly Dictionary<Storage, VehicleUnit> _storageToUnit = new();
 
         public int? GetTaskPercent(TransferTask task)
         {
@@ -43,12 +45,13 @@ namespace AdvancedTransferTask
                 }
 
                 _tasksPercents[task] = percent.Value;
+                OnTaskStart(task);
             }
             else
             {
+                OnTaskStop(task);
                 _tasksPercents.Remove(task);
             }
-            RemoveCachedValues(task);
         }
 
         [CanBeNull]
@@ -67,32 +70,35 @@ namespace AdvancedTransferTask
             return taskInfo;
         }
 
-        private static int GetSumOfLoadedItems([NotNullAttribute] TransferTask task,[NotNullAttribute] Item item)
+        private int GetSumOfLoadedItems([NotNullAttribute] TransferTask task,[NotNullAttribute] Item item)
         {
-            int result = 0;
-            ImmutableUniqueList<VehicleUnit> units = task.GetTargetUnits();
-            for (int i = 0; i < units.Count; i++)
+            Dictionary<Item, int> items = GetSumOfLoadedItems(task);
+            if (items.TryGetValue(item, out int count))
             {
-                VehicleUnit unit = units[i];
-                if (unit.Storage?.Item == item)
-                {
-                    result += unit.Storage.Count;
-                }
+                return count;
             }
 
-            return result;
+            return 0;
         } 
 
-        private static Dictionary<Item, int> GetSumOfLoadedItems([NotNullAttribute] TransferTask task)
+        private Dictionary<Item, int> GetSumOfLoadedItems([NotNullAttribute] TransferTask task)
         {
-            Dictionary<Item, int> result = new();
-            ImmutableUniqueList<VehicleUnit> units = task.GetTargetUnits();
-            for (int i = 0; i < units.Count; i++)
+            if (!_cachedLoadedItems.TryGetValue(task, out Dictionary<Item, int> result))
             {
-                VehicleUnit unit = units[i];
-                if (unit.Storage != null)
+                result = new Dictionary<Item, int>();
+                _cachedLoadedItems[task] = result;
+            }
+
+            if (result.Count == 0)
+            {
+                ImmutableUniqueList<VehicleUnit> units = task.GetTargetUnits();
+                for (int i = 0; i < units.Count; i++)
                 {
-                    result.AddIntToDict(unit.Storage.Item, unit.Storage.Count);
+                    VehicleUnit unit = units[i];
+                    if (unit.Storage != null)
+                    {
+                        result.AddIntToDict(unit.Storage.Item, unit.Storage.Count);
+                    }
                 }
             }
 
@@ -182,6 +188,99 @@ namespace AdvancedTransferTask
             return true;
         }
 
+        private void OnTaskStart(TransferTask task)
+        {
+            if (_tasksPercents.ContainsKey(task))
+            {
+                RemoveCachedValues(task);
+                ImmutableUniqueList<VehicleUnit> units = task.GetTargetUnits();
+                for (int i = 0; i < units.Count; i++)
+                {
+                    VehicleUnit unit = units[i];
+                    unit.StorageChanged -= OnStorageChanged;
+                    unit.StorageChanged += OnStorageChanged;
+                    if (unit.Storage != null)
+                    {
+                        unit.Storage.CountChanged -= OnStorageCountChanged;
+                        unit.Storage.CountChanged += OnStorageCountChanged;
+                        _storageToUnit.Remove(unit.Storage);
+                        _storageToUnit.Add(unit.Storage, unit);
+                    }
+                }                
+            }
+        }
+
+        private void OnTaskStop(TransferTask task)
+        {
+            if (_tasksPercents.ContainsKey(task))
+            {
+                RemoveCachedValues(task);
+                ImmutableUniqueList<VehicleUnit> units = task.GetTargetUnits();
+                for (int i = 0; i < units.Count; i++)
+                {
+                    VehicleUnit unit = units[i];
+                    unit.StorageChanged -= OnStorageChanged;
+                    if (unit.Storage != null)
+                    {
+                        unit.Storage.CountChanged -= OnStorageCountChanged;
+                        _storageToUnit.Remove(unit.Storage);
+                    }
+                }                
+            }
+        }
+
+        [CanBeNull]
+        private TransferTask GetActualTransferTask(VehicleUnit unit)
+        {
+            RootTask rootTask = unit.Vehicle.Schedule.CurrentTask as RootTask;
+            return rootTask?.CurrentSubTask as TransferTask;
+        }
+
+        private void OnStorageChanged(object obj, Storage oldStorage, Storage newStorage)
+        {
+            if (oldStorage != null)
+            {
+                _storageToUnit.Remove(oldStorage);
+            }
+            if (obj is VehicleUnit unit)
+            {
+                TransferTask transferTask = GetActualTransferTask(unit);
+                if (transferTask != null)
+                {
+                    RemoveCachedValues(transferTask);
+                    if (newStorage != null)
+                    {
+                        _storageToUnit.Add(newStorage, unit);
+                    }
+                }
+            }
+        }
+
+        private void OnStorageCountChanged(Storage storage, int oldValue, int newValue)
+        {
+            if (_storageToUnit.TryGetValue(storage, out VehicleUnit unit))
+            {
+                TransferTask transferTask = GetActualTransferTask(unit);
+                if (transferTask != null && _cachedLoadedItems.TryGetValue(transferTask, out Dictionary<Item, int> loadedItems))
+                {
+                    if (loadedItems.TryGetValue(storage.Item, out int value))
+                    {
+                        loadedItems[storage.Item] = value - oldValue + newValue;
+                    }
+                    else
+                    {
+                        //inconsistency, we clear the cache
+                        loadedItems.Clear();
+                    }
+                }
+            }
+        }
+
+        private void OnTaskRemoved(TransferTask task)
+        {
+            OnTaskStop(task);
+        }
+
         internal void Write(StateBinaryWriter writer)
         {
             writer.WriteInt(_tasksPercents.Count);
@@ -241,30 +340,39 @@ namespace AdvancedTransferTask
             }
         }
 
+        private void InvalidateLoadedItems(TransferTask task)
+        {
+            if (_cachedLoadedItems.TryGetValue(task, out Dictionary<Item, int> loadedItems))
+            {
+                loadedItems.Clear();;
+            }
+        }
+        
         private void RemoveCachedValues(TransferTask task)
         {
             _cachedTaskInfo.Remove(task);
+            InvalidateLoadedItems(task);
         }
         
         #region HARMONY
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(VehicleTask), "OnRemove")]
-        private static void TransferTask_OnRemove_pof(VehicleTask __instance)
+        private static void VehicleTask_OnRemove_pof(VehicleTask __instance)
         {
             if (__instance is TransferTask transferTask)
             {
-                Current.RemoveCachedValues(transferTask);
+                Current.OnTaskRemoved(transferTask);
             }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UnitsTask), "OnStart")]
-        private static void TransferTask_OnStart_pof(UnitsTask __instance)
+        private static void UnitsTask_OnStart_pof(UnitsTask __instance)
         {
             if (__instance is TransferTask transferTask)
             {
-                Current.RemoveCachedValues(transferTask);
+                Current.OnTaskStart(transferTask);
             }
         }
 
