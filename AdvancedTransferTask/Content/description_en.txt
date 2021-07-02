@@ -1,0 +1,16 @@
+[h2]Features[/h2]
+
+Allows you to set the percent of vehicle's units capacity as a limit for the maximum amount of items loaded or the amount of items remaining after unloading.
+
+[h2]Usage[/h2]
+Just click on the percentage text in the loading/unloading task in the vehicle schedule.
+In you want to disable limit, leave the field empty or set it to the [b]100[/b] for loading task and the [b]0[/b] for unloading task.
+[b]Full[/b] option in the task behaves similarly - when it is checked, vehicle will wait until loading/unloading limit is reached.
+
+[h2]Compatibility[/h2]
+It should be compatible with with the majority of mods
+[b][url=steamcommunity.com/sharedfiles/filedetails/?id=2498615476]Transport capacity estimator & logistics calculator[/url][/b] has a compatibility for calculation with the limits made by this mod
+
+[h2] Links [/h2]
+[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask]Source code[/url] 
+[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask/issues]Issue tracker[/url]

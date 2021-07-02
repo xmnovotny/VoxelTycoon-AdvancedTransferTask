@@ -1,0 +1,16 @@
+[h2]Funkce[/h2]
+
+Umožní nastavit procento kapacity jednotek vozidla jako limit pro maximální množství naloženého zboží, resp. minimálního zùstatku zboží po vykládce.
+
+[h2]Použití[/h2]
+Kliknutím na text s procenty v nakládacím/vykládacím pøíkaze v jízdním øádu vozidla.
+Pokud chcete zrušit limit, nechte políèko prázdné, nebo ho nastavte na [b]100[/b] u nakládacího pøíkazu a na [b]0[/b] u vykládacího pøíkazu.
+Volba [b]Plnì[/b] se chová podobnì jako u neomezeného pøíkazu - pokud je zvolená, tak vozidlo èeká dokud není dosažen limit nakládky/vykládky.
+
+[h2]Kompatibilita[/h2]
+Mod by mìl být kompatibilní s vìtšinou ostatních modù.
+[b][url=steamcommunity.com/sharedfiles/filedetails/?id=2498615476]Transport capacity estimator & logistics calculator[/url][/b] má podporu pro tento mod a nastavené hodnoty používá pro výpoèty pøepravních kapacit.
+
+[h2] Odkazy [/h2]
+[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask]Zdroják[/url] 
+[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask/issues]Sledování chyb[/url]
