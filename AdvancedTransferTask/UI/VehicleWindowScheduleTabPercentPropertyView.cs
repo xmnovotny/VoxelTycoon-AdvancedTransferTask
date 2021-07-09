@@ -89,7 +89,7 @@ namespace AdvancedTransferTask.UI
             });
         }
 
-        private static VehicleWindowScheduleTabPercentPropertyView GetInstance(Transform parent)
+        internal static VehicleWindowScheduleTabPercentPropertyView GetInstance(Transform parent)
         {
             return Instantiate(GetTemplate(), parent);
         }
@@ -108,28 +108,5 @@ namespace AdvancedTransferTask.UI
 
             return _template;
         }
-
-        #region HARMONY
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(VehicleWindowScheduleTabSubTaskView), "Initialize")]
-        private static void VehicleWindowScheduleTabSubTaskView_Initialize_pof(VehicleWindowScheduleTabSubTaskView __instance)
-        {
-            if (__instance.Task is TransferTask transferTask)
-            {
-                VehicleWindowScheduleTabPercentPropertyView percView = GetInstance(null);
-                if (percView.Initialize(transferTask, __instance.ScheduleTab.EditMode))
-                {
-                    percView.transform.SetParent(__instance.transform.Find("Content/Properties"), false);
-                }
-                else
-                {
-                    Destroy(percView.gameObject);
-                }
-            }
-        }
-
-
-        #endregion        
     }
 }

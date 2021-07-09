@@ -16,7 +16,7 @@ namespace AdvancedTransferTask
     [SchemaVersion(1)]
     public class TransferTasksManager : LazyManager<TransferTasksManager>
     {
-        private readonly Dictionary<TransferTask, int> _tasksPercents = new();
+        private readonly Dictionary<TransferTask, TransferTaskData> _tasksData = new();
         private readonly Dictionary<TransferTask, TransferTaskInfo> _cachedTaskInfo = new();
         private readonly Dictionary<TransferTask, Dictionary<Item, int>> _cachedLoadedItems = new();
         private readonly Dictionary<Storage, VehicleUnit> _storageToUnit = new();
@@ -25,9 +25,9 @@ namespace AdvancedTransferTask
 
         public int? GetTaskPercent(TransferTask task)
         {
-            if (_tasksPercents.TryGetValue(task, out int percent))
+            if (_tasksData.TryGetValue(task, out TransferTaskData data))
             {
-                return percent;
+                return data.Percent;
             }
 
             return null;
@@ -35,6 +35,7 @@ namespace AdvancedTransferTask
 
         public void SetTaskPercent(TransferTask task, int? percent)
         {
+            _tasksData.TryGetValue(task, out TransferTaskData oldData);
             if (percent.HasValue)
             {
                 if (percent < 1)
@@ -46,13 +47,34 @@ namespace AdvancedTransferTask
                     percent = 99;
                 }
 
-                _tasksPercents[task] = percent.Value;
+                TransferTaskData data;
+                if (oldData == null)
+                {
+                    data = new TransferTaskData() {Percent = percent};
+                }
+                else
+                {
+                    data = oldData with {Percent = percent};
+                }
+
+                _tasksData[task] = data;
                 OnTaskStart(task);
             }
             else
             {
                 OnTaskStop(task);
-                _tasksPercents.Remove(task);
+                if (oldData != null)
+                {
+                    TransferTaskData data = oldData with {Percent = null};
+                    if (data.IsDefault)
+                    {
+                        _tasksData.Remove(task);
+                    }
+                    else
+                    {
+                        _tasksData[task] = data;
+                    }
+                }
             }
             SettingsChanged?.Invoke(task);
         }
@@ -62,9 +84,9 @@ namespace AdvancedTransferTask
         {
             if (!_cachedTaskInfo.TryGetValue(task, out TransferTaskInfo taskInfo))
             {
-                if (_tasksPercents.TryGetValue(task, out int percent))
+                if (_tasksData.TryGetValue(task, out TransferTaskData data) && data.Percent != null)
                 {
-                    taskInfo = new TransferTaskInfo(task, percent);
+                    taskInfo = new TransferTaskInfo(task, data.Percent.Value);
                 }
 
                 _cachedTaskInfo[task] = taskInfo;
@@ -193,7 +215,7 @@ namespace AdvancedTransferTask
 
         private void OnTaskStart(TransferTask task)
         {
-            if (_tasksPercents.ContainsKey(task))
+            if (_tasksData.ContainsKey(task))
             {
                 RemoveCachedValues(task);
                 ImmutableUniqueList<VehicleUnit> units = task.GetTargetUnits();
@@ -215,7 +237,7 @@ namespace AdvancedTransferTask
 
         private void OnTaskStop(TransferTask task)
         {
-            if (_tasksPercents.ContainsKey(task))
+            if (_tasksData.ContainsKey(task))
             {
                 RemoveCachedValues(task);
                 ImmutableUniqueList<VehicleUnit> units = task.GetTargetUnits();
@@ -286,16 +308,16 @@ namespace AdvancedTransferTask
 
         internal void Write(StateBinaryWriter writer)
         {
-            writer.WriteInt(_tasksPercents.Count);
-            foreach (KeyValuePair<TransferTask, int> taskPercent in _tasksPercents)
+            writer.WriteInt(_tasksData.Count);
+            foreach (KeyValuePair<TransferTask, TransferTaskData> taskData in _tasksData)
             {
-                Vehicle vehicle = taskPercent.Key.Vehicle;
+                Vehicle vehicle = taskData.Key.Vehicle;
                 int rootTaskIndex = -1;
                 int taskIndex = -1;
                 if (vehicle != null)
                 {
-                    rootTaskIndex = taskPercent.Key.ParentTask.GetIndex();
-                    taskIndex = taskPercent.Key.GetIndex();
+                    rootTaskIndex = taskData.Key.ParentTask.GetIndex();
+                    taskIndex = taskData.Key.GetIndex();
                 }
 
                 if (vehicle != null && rootTaskIndex != -1 && taskIndex != -1)
@@ -303,7 +325,7 @@ namespace AdvancedTransferTask
                     writer.WriteInt(vehicle.Id);
                     writer.WriteInt(rootTaskIndex);
                     writer.WriteInt(taskIndex);
-                    writer.WriteInt(taskPercent.Value);
+                    writer.WriteInt(taskData.Value.Percent ?? -1);
                 }
                 else
                 {
@@ -314,7 +336,7 @@ namespace AdvancedTransferTask
 
         internal void Read(StateBinaryReader reader)
         {
-            _tasksPercents.Clear();
+            _tasksData.Clear();
             int count = reader.ReadInt();
             for (int i = 0; i < count; i++)
             {
@@ -333,7 +355,7 @@ namespace AdvancedTransferTask
                     SubTask subTask = vehicle.Schedule?.GetSubTask(rootTaskIndex, taskIndex);
                     if (subTask is TransferTask transferTask)
                     {
-                        _tasksPercents[transferTask] = value;
+                        _tasksData[transferTask] = new TransferTaskData() { Percent = value};
                     }
                 }
                 catch
@@ -359,9 +381,9 @@ namespace AdvancedTransferTask
 
         private void CopyFrom(TransferTask task, TransferTask original)
         {
-            if (_tasksPercents.TryGetValue(original, out int percent))
+            if (_tasksData.TryGetValue(original, out TransferTaskData taskData))
             {
-                _tasksPercents[task] = percent;
+                _tasksData[task] = taskData;
             }
         }
         
@@ -398,9 +420,9 @@ namespace AdvancedTransferTask
         [HarmonyPatch(typeof(TransferTask), "GetVersion")]
         private static void TransferTask_GetVersion_pof(TransferTask __instance, ref int __result)
         {
-            if (Current._tasksPercents.TryGetValue(__instance, out int percent))
+            if (Current._tasksData.TryGetValue(__instance, out TransferTaskData taskData))
             {
-                __result = __result * -0x5AAAAAD7 + percent;
+                __result = __result * -0x5AAAAAD7 + taskData.GetHashCode();
             }
         }
 
@@ -419,7 +441,7 @@ namespace AdvancedTransferTask
         private static void TransferTask_IsUnloading_prf(TransferTask __instance, out bool __state)
         {
             __state = false;
-            if (__instance.UnloadMode == TransferMode.Full && Current._tasksPercents.ContainsKey(__instance))
+            if (__instance.UnloadMode == TransferMode.Full && Current._tasksData.ContainsKey(__instance))
             {
                 __state = true;
                 __instance.UnloadMode = TransferMode.Partial;
@@ -445,7 +467,7 @@ namespace AdvancedTransferTask
         private static void TransferTask_IsLoading_prf(TransferTask __instance, out bool __state)
         {
             __state = false;
-            if (__instance.LoadMode == TransferMode.Full && Current._tasksPercents.ContainsKey(__instance))
+            if (__instance.LoadMode == TransferMode.Full && Current._tasksData.ContainsKey(__instance))
             {
                 __state = true;
                 __instance.LoadMode = TransferMode.Partial;
