@@ -1,5 +1,14 @@
 ﻿{
   "advanced_transfer_task/percentage_loaded": "Procento z kapacity jednotek jako maximální limit nakládky.",
   "advanced_transfer_task/percentage_unloaded": "Procento z kapacity jednotek, které zůstane naložené.",
-  "advanced_transfer_task/edit_tooltip": "Upravit přesný limit nakládky/vykládky"
+  "advanced_transfer_task/edit_tooltip": "Upravit přesný limit nakládky/vykládky",
+  "advanced_transfer_task/full_any": "Plně cokoliv",
+  "advanced_transfer_task/load": "naložení",
+  "advanced_transfer_task/unload": "vyložení",
+  "advanced_transfer_task/menu_not_wait": "Nečekat na plné {0}",
+  "advanced_transfer_task/menu_wait_for_any": "Čekat na plné {0} jakéhokoliv druhu zboží",
+  "advanced_transfer_task/menu_wait_for_all": "Čekat na plné {0} veškerého zboží",
+  "advanced_transfer_task/tooltip_not_wait": "Nebude čekat na plné {0}",
+  "advanced_transfer_task/tooltip_wait_for_any": "Vyčká na plné {0} jakéhokoliv druhu zboží",
+  "advanced_transfer_task/tooltip_wait_for_all": "Vyčká na plné {0} veškerého zboží"
 }

@@ -28,6 +28,7 @@ namespace AdvancedTransferTask.UI
             }
             _task = task;
             _text = base.transform.Find<Text>("Text");
+            _text.horizontalOverflow = HorizontalWrapMode.Overflow;
             Button component = GetComponent<Button>();
             if (editMode)
             {
