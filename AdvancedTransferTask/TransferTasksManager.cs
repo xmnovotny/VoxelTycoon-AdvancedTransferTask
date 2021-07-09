@@ -32,6 +32,7 @@ namespace AdvancedTransferTask
 
             return null;
         }
+        
 
         public void SetTaskPercent(TransferTask task, int? percent)
         {
@@ -77,6 +78,64 @@ namespace AdvancedTransferTask
                 }
             }
             SettingsChanged?.Invoke(task);
+        }
+
+        public FullTransferOption GetTaskTransferOption(TransferTask task)
+        {
+            if (_tasksData.TryGetValue(task, out var taskData))
+            {
+                if (taskData.FullAny)
+                {
+                    return FullTransferOption.FullAny;
+                }
+            }
+
+            return (task is LoadTask && task.LoadMode == TransferMode.Full || task is UnloadTask && task.UnloadMode == TransferMode.Full)
+                ? FullTransferOption.FullAll
+                : FullTransferOption.NoWait;
+        }
+
+        public void SetTaskTransferOption(TransferTask task, FullTransferOption transferOption)
+        {
+            if (transferOption == FullTransferOption.FullAny)
+            {
+                _tasksData[task] = _tasksData.GetValueOrDefault(task, new TransferTaskData()) with {FullAny = true};
+            }
+            else if (_tasksData.TryGetValue(task, out TransferTaskData data))
+            {
+                data = data with {FullAny = false};
+                if (data.IsDefault)
+                {
+                    _tasksData.Remove(task);
+                }
+                else
+                {
+                    _tasksData[task] = data;
+                }
+            }
+
+            if (task is LoadTask)
+            {
+                if (transferOption == FullTransferOption.NoWait)
+                {
+                    task.LoadMode = TransferMode.Partial;
+                }
+                else
+                {
+                    task.LoadMode = TransferMode.Full;
+                }
+            }
+            else if (task is UnloadTask)
+            {
+                if (transferOption == FullTransferOption.NoWait)
+                {
+                    task.UnloadMode = TransferMode.Partial;
+                }
+                else
+                {
+                    task.UnloadMode = TransferMode.Full;
+                }
+            }
         }
 
         [CanBeNull]
@@ -325,7 +384,7 @@ namespace AdvancedTransferTask
                     writer.WriteInt(vehicle.Id);
                     writer.WriteInt(rootTaskIndex);
                     writer.WriteInt(taskIndex);
-                    writer.WriteInt(taskData.Value.Percent ?? -1);
+                    writer.WriteInt(taskData.Value.Percent.GetValueOrDefault(-1));
                 }
                 else
                 {

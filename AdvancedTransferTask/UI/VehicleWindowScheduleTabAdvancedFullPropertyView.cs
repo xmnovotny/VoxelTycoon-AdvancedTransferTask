@@ -17,32 +17,31 @@ namespace AdvancedTransferTask.UI
 
 		private TransferTask _task;
 
+		private FullTransferOption _transferOption;
+
 		public override bool Initialize(TransferTask task, bool editMode)
 		{
-			if (task == null)
-			{
-				throw new ArgumentNullException("task");
-			}
-			_task = task;
-			if (!editMode && !GetValue())
+			_task = task ?? throw new ArgumentNullException(nameof(task));
+			_transferOption = LazyManager<TransferTasksManager>.Current.GetTaskTransferOption(task);
+			if (!editMode && _transferOption == FullTransferOption.NoWait)
 			{
 				return false;
 			}
 			_editMode = editMode;
-			_icon = base.transform.Find<Text>("Icon");
-			base.transform.Find<Text>("Text").text = "Fulload";// S.VehicleWindowScheduleFull.ToUpper();
+			_icon = transform.Find<Text>("Icon");
+			transform.Find<Text>("Text").text =
+				(_transferOption == FullTransferOption.FullAny ? "Full any" : "Full").ToUpper();
 			Button component = GetComponent<Button>();
+			_icon.SetFontIcon(_transferOption != FullTransferOption.NoWait ? FontIcon.FaSolid("\uf14a") : FontIcon.FaRegular("\uf0c8"));
 			if (editMode)
 			{
-				VoxelTycoon.UI.ContextMenu.For(component, PickerBehavior.OverlayToRight, new Action<VoxelTycoon.UI.ContextMenu>(this.SetupContextMenu));
-				base.gameObject.AddComponent<ClickableDecorator>();
-				_icon.SetFontIcon(GetValue() ? FontIcon.FaSolid("\uf14a") : FontIcon.FaRegular("\uf0c8"));
+				VoxelTycoon.UI.ContextMenu.For(component, PickerBehavior.OverlayToRight, SetupContextMenu);
+				gameObject.AddComponent<ClickableDecorator>();
 			}
 			else
 			{
 				component.interactable = false;
 				_icon.color = Color.black.WithAlpha(0.5f);
-				_icon.SetFontIcon(FontIcon.FaRegular("\uf14a"));
 			}
 			Tooltip.For(this, GetTooltip());
 			Update();
@@ -50,66 +49,34 @@ namespace AdvancedTransferTask.UI
 		}
 		private void SetupContextMenu(VoxelTycoon.UI.ContextMenu menu)
 		{
-			menu.AddItem("Do not wait", () => SetTransferOption(FullTransferOption.NoWait));
-			menu.AddItem("Wait for full of any item", () => SetTransferOption(FullTransferOption.FullAny));
-			menu.AddItem("Wait for full of all items", () => SetTransferOption(FullTransferOption.FullAll));
+			string dir = _task is LoadTask ? "load" : "unload";
+			menu.AddItem("Do not wait for full {0}".Format(dir), () => SetTransferOption(FullTransferOption.NoWait));
+			menu.AddItem("Wait for full {0} of any item type".Format(dir), () => SetTransferOption(FullTransferOption.FullAny));
+			menu.AddItem("Wait for full {0} of all items".Format(dir), () => SetTransferOption(FullTransferOption.FullAll));
 		}
 
 		private void SetTransferOption(FullTransferOption option)
 		{
-			
+			TransferTasksManager manager = LazyManager<TransferTasksManager>.Current;
+			RouteHelper.PropagateAction(_task, delegate(TransferTask t)
+			{
+				manager.SetTaskTransferOption(t, option);
+			});
 		}
 		
-		private DisplayString GetTooltip()
+		private string GetTooltip()
 		{
-			TransferTask task = _task;
-			if (!(task is UnloadTask))
+			string dir = _task is LoadTask ? "load" : "unload";
+			switch (_transferOption)
 			{
-				if (task is LoadTask)
-				{
-					return S.VehicleWindowScheduleWaitForFullLoad;
-				}
-				throw new ArgumentException();
-			}
-			return S.VehicleWindowScheduleWaitForFullUnload;
-		}
-
-		private bool GetValue()
-		{
-			TransferTask task = _task;
-			if (!(task is UnloadTask))
-			{
-				if (task is LoadTask)
-				{
-					return _task.LoadMode == TransferMode.Full;
-				}
-				throw new ArgumentException();
-			}
-			return _task.UnloadMode == TransferMode.Full;
-		}
-
-		private void OnClick()
-		{
-			TransferTask task = _task;
-			if (!(task is UnloadTask))
-			{
-				if (!(task is LoadTask))
-				{
-					throw new ArgumentException();
-				}
-				TransferMode loadMode = ((_task.LoadMode == TransferMode.Full) ? TransferMode.Partial : TransferMode.Full);
-				RouteHelper.PropagateAction(_task, delegate(TransferTask t)
-				{
-					t.LoadMode = loadMode;
-				});
-			}
-			else
-			{
-				TransferMode unloadMode = ((_task.UnloadMode == TransferMode.Full) ? TransferMode.Partial : TransferMode.Full);
-				RouteHelper.PropagateAction(_task, delegate(TransferTask t)
-				{
-					t.UnloadMode = unloadMode;
-				});
+				case FullTransferOption.NoWait:
+					return "Will not wait for full {0}".Format(dir);
+				case FullTransferOption.FullAny:
+					return "Will wait for full {0} of any item type".Format(dir);
+				case FullTransferOption.FullAll:
+					return "Will wait for full {0} of all items".Format(dir);
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 
