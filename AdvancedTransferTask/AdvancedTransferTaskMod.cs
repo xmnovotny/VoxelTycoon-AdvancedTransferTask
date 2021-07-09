@@ -26,12 +26,6 @@ namespace AdvancedTransferTask
             _harmony.PatchAll();
         }
 
-        protected override void OnGameStarted()
-        {
-/*            ModSettingsWindowManager.Current.Register<SettingsWindowPage>(this.GetType().Name,
-                LazyManager<LocaleManager>.Current.Locale.GetString("schedule_stopwatch/settings_window_title"));*/
-        }
-
         protected override void Deinitialize()
         {
             _harmony.UnpatchAll(_harmonyID);

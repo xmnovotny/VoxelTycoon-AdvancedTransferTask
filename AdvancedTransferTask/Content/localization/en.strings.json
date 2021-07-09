@@ -6,9 +6,9 @@
   "advanced_transfer_task/load": "load",
   "advanced_transfer_task/unload": "unload",
   "advanced_transfer_task/menu_not_wait": "Do not wait for full {0}",
-  "advanced_transfer_task/menu_wait_for_any": "Wait for full {0} of any item type",
-  "advanced_transfer_task/menu_wait_for_all": "Wait for full {0} of all items",
+  "advanced_transfer_task/menu_wait_for_any": "Wait for full {0} of any cargo type",
+  "advanced_transfer_task/menu_wait_for_all": "Wait for full {0} of all cargo",
   "advanced_transfer_task/tooltip_not_wait": "Will not wait for full {0}",
-  "advanced_transfer_task/tooltip_wait_for_any": "Will wait for full {0} of any item type",
-  "advanced_transfer_task/tooltip_wait_for_all": "Will wait for full {0} of all items"
+  "advanced_transfer_task/tooltip_wait_for_any": "Will wait for full {0} of any cargo type",
+  "advanced_transfer_task/tooltip_wait_for_all": "Will wait for full {0} of all cargo"
 }

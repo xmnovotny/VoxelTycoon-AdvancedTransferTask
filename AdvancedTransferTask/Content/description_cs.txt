@@ -1,16 +1,25 @@
 [h2]Funkce[/h2]
+[list]
+[*]umoÅ¾nÃ­ nastavit procento kapacity jednotek vozidla jako limit pro maximÃ¡lnÃ­ mnoÅ¾stvÃ­ naloÅ¾enÃ©ho zboÅ¾Ã­, resp. minimÃ¡lnÃ­ho zÅ¯statku zboÅ¾Ã­ po vyklÃ¡dce
+[*][b]NOVÄš[/b] moÅ¾nost nastavit ÄekÃ¡nÃ­ na plnÃ© naloÅ¾enÃ­/vyloÅ¾enÃ­ jakÃ©hokoliv druhu zboÅ¾Ã­
+[/list]
 
-Umoní nastavit procento kapacity jednotek vozidla jako limit pro maximální mnoství naloeného zboí, resp. minimálního zùstatku zboí po vykládce.
-
-[h2]Pouití[/h2]
-Kliknutím na text s procenty v nakládacím/vykládacím pøíkaze v jízdním øádu vozidla.
-Pokud chcete zrušit limit, nechte políèko prázdné, nebo ho nastavte na [b]100[/b] u nakládacího pøíkazu a na [b]0[/b] u vykládacího pøíkazu.
-Volba [b]Plnì[/b] se chová podobnì jako u neomezeného pøíkazu - pokud je zvolená, tak vozidlo èeká dokud není dosaen limit nakládky/vykládky.
+[h2]PouÅ¾itÃ­[/h2]
+KliknutÃ­m na text s procenty v naklÃ¡dacÃ­m/vyklÃ¡dacÃ­m pÅ™Ã­kaze v jÃ­zdnÃ­m Å™Ã¡du vozidla.
+Pokud chcete zruÅ¡it limit, nechte polÃ­Äko prÃ¡zdnÃ©, nebo ho nastavte na [b]100[/b] u naklÃ¡dacÃ­ho pÅ™Ã­kazu a na [b]0[/b] u vyklÃ¡dacÃ­ho pÅ™Ã­kazu.
+Volba [b]PlnÄ›[/b] se chovÃ¡ podobnÄ› jako u neomezenÃ©ho pÅ™Ã­kazu - pokud je zvolenÃ¡, tak vozidlo ÄekÃ¡ dokud nenÃ­ dosaÅ¾en limit naklÃ¡dky/vyklÃ¡dky.
+Pro nastavenÃ­ ÄekÃ¡nÃ­ na naloÅ¾enÃ­/vyloÅ¾enÃ­ jakÃ©hokoliv druhu zboÅ¾Ã­, kliknÄ›te na volbu "FULL" a vyberte z nabÃ­dky pÅ™Ã­sluÅ¡nou volbu.
 
 [h2]Kompatibilita[/h2]
-Mod by mìl bıt kompatibilní s vìtšinou ostatních modù.
-[b][url=steamcommunity.com/sharedfiles/filedetails/?id=2498615476]Transport capacity estimator & logistics calculator[/url][/b] má podporu pro tento mod a nastavené hodnoty pouívá pro vıpoèty pøepravních kapacit.
+Mod by mÄ›l bÃ½t kompatibilnÃ­ s vÄ›tÅ¡inou ostatnÃ­ch modÅ¯.
+[b][url=steamcommunity.com/sharedfiles/filedetails/?id=2498615476]Transport capacity estimator & logistics calculator[/url][/b] mÃ¡ podporu pro tento mod a nastavenÃ© hodnoty pouÅ¾Ã­vÃ¡ pro vÃ½poÄty pÅ™epravnÃ­ch kapacit.
+
+[h2]PoslednÃ­ zmÄ›ny[/h2]
+[b]Verze 2.0[/b]
+[list]
+[*] PÅ™idÃ¡na moÅ¾nost nastavit ÄekÃ¡nÃ­ na plnÃ© naloÅ¾enÃ­/vyloÅ¾enÃ­ jakÃ©hokoliv druhu zboÅ¾Ã­
+[/list]
 
 [h2] Odkazy [/h2]
-[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask]Zdroják[/url] 
-[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask/issues]Sledování chyb[/url]
+[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask]ZdrojÃ¡k[/url] 
+[url=https://github.com/xmnovotny/VoxelTycoon-AdvancedTransferTask/issues]SledovÃ¡nÃ­ chyb[/url]
