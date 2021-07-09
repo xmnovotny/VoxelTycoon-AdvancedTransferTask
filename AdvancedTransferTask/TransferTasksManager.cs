@@ -13,7 +13,7 @@ namespace AdvancedTransferTask
     using XMNUtils;
     
     [HarmonyPatch]
-    [SchemaVersion(1)]
+    [SchemaVersion(2)]
     public class TransferTasksManager : LazyManager<TransferTasksManager>
     {
         private readonly Dictionary<TransferTask, TransferTaskData> _tasksData = new();
@@ -411,6 +411,7 @@ namespace AdvancedTransferTask
                     writer.WriteInt(rootTaskIndex);
                     writer.WriteInt(taskIndex);
                     writer.WriteInt(taskData.Value.Percent.GetValueOrDefault(-1));
+                    writer.WriteBool(taskData.Value.FullAny); //new in version 2
                 }
                 else
                 {
@@ -423,6 +424,7 @@ namespace AdvancedTransferTask
         {
             _tasksData.Clear();
             int count = reader.ReadInt();
+            int version = SchemaVersion<TransferTasksManager>.Get();
             for (int i = 0; i < count; i++)
             {
                 int vehicleIndex = reader.ReadInt();
@@ -433,14 +435,21 @@ namespace AdvancedTransferTask
 
                 int rootTaskIndex = reader.ReadInt();
                 int taskIndex = reader.ReadInt();
-                int value = reader.ReadInt();
+                int percent = reader.ReadInt();
+                
+                bool fullAny = version >= 2 && reader.ReadBool();
 
                 try
                 {
                     SubTask subTask = vehicle.Schedule?.GetSubTask(rootTaskIndex, taskIndex);
                     if (subTask is TransferTask transferTask)
                     {
-                        _tasksData[transferTask] = new TransferTaskData() { Percent = value};
+                        TransferTaskData data = new(){ Percent = percent == -1 ? null : percent, FullAny = fullAny};
+
+                        if (!data.IsDefault)
+                        {
+                            _tasksData[transferTask] = data;
+                        }
                     }
                 }
                 catch
