@@ -143,9 +143,9 @@ namespace AdvancedTransferTask
         {
             if (!_cachedTaskInfo.TryGetValue(task, out TransferTaskInfo taskInfo))
             {
-                if (_tasksData.TryGetValue(task, out TransferTaskData data) && data.Percent != null)
+                if (_tasksData.TryGetValue(task, out TransferTaskData data))
                 {
-                    taskInfo = new TransferTaskInfo(task, data.Percent.Value);
+                    taskInfo = new TransferTaskInfo(task, data.Percent ?? (task is LoadTask ? 100 : 0));
                 }
 
                 _cachedTaskInfo[task] = taskInfo;
@@ -239,15 +239,28 @@ namespace AdvancedTransferTask
         private bool IsUnloadingComplete(TransferTask task)
         {
             TransferTaskInfo taskInfo = GetTransferTaskInfo(task);
-            if (taskInfo != null)
+            TransferTaskData taskData = _tasksData.GetValueOrDefault(task, null);
+            if (taskInfo != null && taskData != null)
             {
                 Dictionary<Item, int> loadedItems = GetSumOfLoadedItems(task);
                 foreach (KeyValuePair<Item, int> capacity in taskInfo.GetCapacityPerItem())
                 {
                     if (loadedItems.TryGetValue(capacity.Key, out int loaded) && loaded > capacity.Value)
                     {
-                        return false;
+                        if (taskData.FullAny == false)
+                        {
+                            return false;
+                        }
                     }
+                    else if (taskData.FullAny)
+                    {
+                        return true;
+                    }
+                }
+
+                if (taskData.FullAny)
+                {
+                    return false;
                 }
             }
 
@@ -257,15 +270,28 @@ namespace AdvancedTransferTask
         private bool IsLoadingComplete(TransferTask task)
         {
             TransferTaskInfo taskInfo = GetTransferTaskInfo(task);
-            if (taskInfo != null)
+            TransferTaskData taskData = _tasksData.GetValueOrDefault(task, null);
+            if (taskInfo != null && taskData != null)
             {
                 Dictionary<Item, int> loadedItems = GetSumOfLoadedItems(task);
                 foreach (KeyValuePair<Item, int> capacity in taskInfo.GetCapacityPerItem())
                 {
                     if (!loadedItems.TryGetValue(capacity.Key, out int loaded) || loaded < capacity.Value)
                     {
-                        return false;
+                        if (taskData.FullAny == false)
+                        {
+                            return false;
+                        }
                     }
+                    else if (taskData.FullAny)
+                    {
+                        return true;
+                    }
+                }
+
+                if (taskData.FullAny)
+                {
+                    return false;
                 }
             }
 
@@ -500,7 +526,7 @@ namespace AdvancedTransferTask
         private static void TransferTask_IsUnloading_prf(TransferTask __instance, out bool __state)
         {
             __state = false;
-            if (__instance.UnloadMode == TransferMode.Full && Current._tasksData.ContainsKey(__instance))
+            if (__instance.UnloadMode == TransferMode.Full && Current._tasksData.TryGetValue(__instance, out TransferTaskData data) && !data.IsDefault)
             {
                 __state = true;
                 __instance.UnloadMode = TransferMode.Partial;
@@ -526,7 +552,7 @@ namespace AdvancedTransferTask
         private static void TransferTask_IsLoading_prf(TransferTask __instance, out bool __state)
         {
             __state = false;
-            if (__instance.LoadMode == TransferMode.Full && Current._tasksData.ContainsKey(__instance))
+            if (__instance.LoadMode == TransferMode.Full && Current._tasksData.TryGetValue(__instance, out TransferTaskData data) && !data.IsDefault)
             {
                 __state = true;
                 __instance.LoadMode = TransferMode.Partial;
