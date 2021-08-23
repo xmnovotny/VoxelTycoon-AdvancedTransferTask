@@ -51,7 +51,7 @@ namespace AdvancedTransferTask
         {
             _capacityPerItem.Clear();
             _tmpCapacityPerItem.Clear();
-            ImmutableList<VehicleUnit> units = _task.GetAvailableUnits();
+            ImmutableUniqueList<VehicleUnit> units = _task.GetTargetUnits();
             IsIncomplete = false;
             for (int i = 0; i < units.Count; i++)
             {

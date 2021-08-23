@@ -15,6 +15,10 @@ It should be compatible with with the majority of mods
 [b][url=steamcommunity.com/sharedfiles/filedetails/?id=2498615476]Transport capacity estimator & logistics calculator[/url][/b] has a compatibility for calculation with the limits made by this mod
 
 [h2]Latest changes[/h2]
+[b]Version 2.0.1[/b]
+[list]
+[*] Fix behaviour of load/unload limits and wait for full when not all vehicles unit has to be loaded/unloaded
+[/list]
 [b]Version 2.0[/b]
 [list]
 [*] Added option to wait for full load/unload of any cargo type

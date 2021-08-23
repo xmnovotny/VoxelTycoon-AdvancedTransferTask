@@ -15,6 +15,10 @@ Mod by měl být kompatibilní s většinou ostatních modů.
 [b][url=steamcommunity.com/sharedfiles/filedetails/?id=2498615476]Transport capacity estimator & logistics calculator[/url][/b] má podporu pro tento mod a nastavené hodnoty používá pro výpočty přepravních kapacit.
 
 [h2]Poslední změny[/h2]
+[b]Version 2.0.1[/b]
+[list]
+[*] Oprava chování limitu nakládky/vykládky a čekání na plné naloženív případě, že se mají nakládat/vykládat jen vybrané vozy
+[/list]
 [b]Verze 2.0[/b]
 [list]
 [*] Přidána možnost nastavit čekání na plné naložení/vyložení jakéhokoliv druhu zboží
