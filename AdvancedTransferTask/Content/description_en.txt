@@ -18,6 +18,7 @@ It should be compatible with with the majority of mods
 [b]Version 2.0.1[/b]
 [list]
 [*] Fix behaviour of load/unload limits and wait for full when not all vehicles unit has to be loaded/unloaded
+[*] Added chinese translation
 [/list]
 [b]Version 2.0[/b]
 [list]
